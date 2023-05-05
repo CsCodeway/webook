@@ -19,18 +19,35 @@ import HeaderIcon from "./HeaderIcon";
 import { signOut, useSession } from "next-auth/react";
 import { LightBulbIcon, MoonIcon } from "@heroicons/react/solid";
 import userDarkMode from "../hooks/userDarkMode";
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 const Header = () => {
-  const { data: session } = useSession();
+  const { data: session, loading } = useSession();
   const [colorTheme, setTheme] = userDarkMode();
   const [isOpen, setIsOpen] = useState(false);
   const toggleDropdown = () => setIsOpen((prevState) => !prevState);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
-      <div className="sticky top-0 z-50 bg-white flex items-center p-0.5 lg:px-5 shadow-md dark:bg-gray-800 dark:text-white">
+      <div
+        className="sticky top-0 z-50 bg-white flex items-center p-0.5 lg:px-5 shadow-md dark:bg-gray-800 dark:text-white"
+        ref={dropdownRef}
+      >
         {/* Left */}
 
         <div className="flex items-center">
@@ -71,24 +88,23 @@ const Header = () => {
             />
           )}
 
-          <Link href="/profile">
-            <div className="flex items-center space-x-2">
-              <Image
-                className="rounded-full cursor-pointer"
-                src={session.user.image}
-                width={40}
-                height={40}
-                layout="fixed"
-                alt={session.user.name}
-              />
-              <p className="hidden sm:flex whitespace-nowrap font-semibold pr-3">
-                {session.user.name}
-              </p>
-            </div>
-          </Link>
+          <div className="flex items-center space-x-2">
+            <Image
+              className="rounded-full cursor-pointer"
+              src={session?.user.image}
+              width={40}
+              height={40}
+              layout="fixed"
+              alt={session?.user.name}
+            />
+            <p className="hidden sm:flex whitespace-nowrap font-semibold pr-3">
+              {session?.user.name}
+            </p>
+          </div>
 
           <ViewGridIcon className="icon" />
           <ChatIcon className="icon" />
+
           <BellIcon className="icon" />
           <ChevronDownIcon className="icon" onClick={toggleDropdown} />
           {isOpen && (

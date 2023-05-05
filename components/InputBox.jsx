@@ -2,7 +2,7 @@ import { EmojiHappyIcon } from "@heroicons/react/outline";
 import { CameraIcon, VideoCameraIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { db, storage } from "../firebase";
 import firebase from "firebase/compat/app";
 import EmojiPicker, { SuggestionMode } from "emoji-picker-react";
@@ -14,6 +14,7 @@ const InputBox = () => {
   const [imageToPost, setImageToPost] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [inputStr, setInputStr] = useState("");
+  const dropdownRef = useRef(null);
 
   const sendPost = (e) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ const InputBox = () => {
       .add({
         id: session.user.uid,
         message: inputRef.current.value,
-        //   email: session.user.email,
+        email: session.user.email,
         name: session.user.name,
         image: session.user.image,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -67,9 +68,19 @@ const InputBox = () => {
 
   const addImageToPost = (e) => {
     const reader = new FileReader();
+    const maxSize = 5 * 1024 * 1024; // 5MB
+  
     if (e.target.files[0]) {
+      const fileSize = e.target.files[0].size;
+  
+      if (fileSize > maxSize) {
+        alert('File size is too large');
+        return;
+      }
+  
       reader.readAsDataURL(e.target.files[0]);
     }
+  
     reader.onload = (readerEvent) => {
       setImageToPost(readerEvent.target.result);
     };
@@ -85,9 +96,25 @@ const InputBox = () => {
   const onEmojiClick = (data) => {
     setInputStr(inputStr + data.emoji);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPopup(false);
+      }
+    };
+
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+
   return (
     <>
-      <div className="bg-white dark:bg-gray-900 dark:text-white rounded-2xl shadow-md text-gray-500 font-medium mt-6">
+      <div className="bg-white dark:bg-gray-900 dark:text-white rounded-2xl shadow-md text-gray-500 font-medium mt-6" ref={dropdownRef}>
         <div className="flex space-x-4 p-6 items-center">
           <Image
             className="rounded-full"
@@ -150,6 +177,7 @@ const InputBox = () => {
               ref={filepickerRef}
               type="file"
               onChange={addImageToPost}
+              accept="image/*"
               hidden
             />
           </div>

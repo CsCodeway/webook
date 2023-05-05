@@ -6,13 +6,18 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  user-select: none;
+  /* user-select: none; */
 }
 ::-webkit-scrollbar{
   display: none;
 }
 
 @layer components {
+
+  .story-bg{
+    background-color: whitesmoke;
+  }
+
   .icon {
     @apply hidden xl:inline-flex p-2 h-10 w-10 bg-gray-200 rounded-full text-gray-700 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-100;
   }

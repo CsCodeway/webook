@@ -2,13 +2,6 @@ import { SearchIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon, VideoCameraIcon } from "@heroicons/react/solid";
 import Contact from "./Contact";
 
-const contacts = [
-  {
-    src: "/../public/assets/dinesh.jpg",
-    name: "Dinesh Suthar",
-  }
-];
-
 const Widgets = () => {
   return (
     <div className="hidden lg:flex flex-col w-60 p-2 mt-5 cursor-pointer">
@@ -21,11 +14,8 @@ const Widgets = () => {
         </div>
       </div>
 
-      {contacts.map((contact) => {
-        return (
-          <Contact key={contact.src} src={contact.src} name={contact.name} />
-        );
-      })}
+          <Contact />
+      
     </div>
   );
 };

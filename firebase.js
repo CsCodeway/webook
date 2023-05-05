@@ -1,25 +1,27 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
-import 'firebase/compat/storage';
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore";
+import "firebase/compat/storage";
+import "firebase/compat/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDPJKy2NkmD0BT5i-eVprgaPBlCN1SD3Fs",
-  authDomain: "coolbook-ec640.firebaseapp.com",
-  projectId: "coolbook-ec640",
-  storageBucket: "coolbook-ec640.appspot.com",
-  messagingSenderId: "704850255751",
-  appId: "1:704850255751:web:d6bf49144c0544a3e57d22",
+  apiKey: "AIzaSyB87znIRC8YFb9UcE16nTCULaCB655ogZU",
+  authDomain: "coolbook-c7c5a.firebaseapp.com",
+  projectId: "coolbook-c7c5a",
+  storageBucket: "coolbook-c7c5a.appspot.com",
+  messagingSenderId: "421787031558",
+  appId: "1:421787031558:web:b0031487060a2078cd8b87",
+  measurementId: "G-VDHHZ3GSBQ"
 };
 
 // Initialize Firebase
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+const app = !firebase.apps.length
+  ? firebase.initializeApp(firebaseConfig)
+  : firebase.app();
 
 // Initialize Firestore
 const db = firebase.firestore();
-
+const auth = app.auth();
 // Initialize Storage
 const storage = firebase.storage();
 
-export { db, storage };
+export { db, storage, auth, app };

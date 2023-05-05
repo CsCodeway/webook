@@ -7,7 +7,7 @@ import Feed from "../../components/Feed";
 import Widgets from "../../components/Widgets";
 import { db } from "../../firebase";
 
-export default function Home({ session, posts }) {
+export default function Home({ session, posts, story }) {
   if (!session) return <Login />;
   return (
     <div className="h-screen bg-gray-100 overflow-hidden dark:bg-gray-800 dark:text-white">
@@ -17,7 +17,7 @@ export default function Home({ session, posts }) {
       <Header />
       <main className="flex">
         <Sidebar />
-        <Feed posts={posts} />
+        <Feed posts={posts} story={story} />
         <Widgets />
       </main>
     </div>
@@ -25,10 +25,12 @@ export default function Home({ session, posts }) {
 }
 
 export async function getServerSideProps(context) {
+
   //get the user
   const session = await getSession(context);
 
   const posts = await db.collection("posts").orderBy("timestamp", "desc").get();
+  const story = await db.collection("story").orderBy("timestamp", "desc").get();
 
   const docs = posts.docs.map((post) => ({
     id: post.id,
@@ -36,10 +38,17 @@ export async function getServerSideProps(context) {
     timestamp: null,
   }));
 
+  const storydocs = story.docs.map((store) => ({
+    id: store.id,
+    ...store.data(),
+    timestamp: null,
+  }));
+
   return {
     props: {
       session,
       posts: docs,
+      story: storydocs
     },
   };
 }
