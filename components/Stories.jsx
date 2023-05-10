@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { PlusCircleIcon } from "@heroicons/react/outline";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { db, storage } from "../firebase";
 import firebase from "firebase/compat/app";
 import { useCollection } from "react-firebase-hooks/firestore";
@@ -11,6 +11,7 @@ const Stories = ({ story }) => {
   const { data: session } = useSession();
   const filepickerRef = useRef(null);
   const [imageToPost, setimageToPost] = useState(null);
+  const [removeTimeoutId, setRemoveTimeoutId] = useState(null);
 
   const addimageToPost = (e) => {
     const reader = new FileReader();
@@ -68,24 +69,34 @@ const Stories = ({ story }) => {
             null,
             (error) => console.error(error),
             () => {
-              //when the upload complete
               storage
                 .ref("story")
                 .child(doc.id)
                 .getDownloadURL()
                 .then((url) => {
-                  db.collection("story").doc(doc.id).set(
-                    {
-                      postImage: url,
-                    },
-                    { merge: true }
-                  );
+                  db.collection("story")
+                    .doc(doc.id)
+                    .set(
+                      {
+                        postImage: url,
+                      },
+                      { merge: true }
+                    );
                 });
+
+              // Set a timeout for deleting the story after 24 hours (86400000 milliseconds)
+              const timeoutId = setTimeout(() => {
+                db.collection("story").doc(doc.id).delete();
+                storage.ref(`story/${doc.id}`).delete();
+              }, 86400000);
             }
           );
         }
       });
   };
+
+  
+  
 
   const [realtimePosts] = useCollection(
     db.collection("story").orderBy("timestamp", "desc")

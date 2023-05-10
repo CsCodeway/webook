@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import { db, storage } from "../firebase";
 import firebase from "firebase/compat/app";
 import EmojiPicker, { SuggestionMode } from "emoji-picker-react";
+import { v4 as uuidv4 } from "uuid";
 
 const InputBox = () => {
-  const { data: session } = useSession();
+  const { data: session, loading } = useSession();
   const inputRef = useRef(null);
   const filepickerRef = useRef(null);
   const [imageToPost, setImageToPost] = useState(null);
@@ -19,68 +20,71 @@ const InputBox = () => {
   const sendPost = (e) => {
     e.preventDefault();
 
-    if (!inputRef.current.value.trim()) return;
+    if (!loading && session) {
+      const currentUser = session.user;
+  console.log("Current user:", currentUser);
+      db.collection("posts")
+        .add({
+          postId: uuidv4(),
+          id: uuidv4(),
+          message: inputStr,
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        })
+        .then((doc) => {
+          if (imageToPost) {
+            const uploadTask = storage
+              .ref(`posts/${doc.id}`)
+              .putString(imageToPost, "data_url");
 
-    db.collection("posts")
-      .add({
-        id: session.user.uid,
-        message: inputRef.current.value,
-        email: session.user.email,
-        name: session.user.name,
-        image: session.user.image,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      })
-      .then((doc) => {
-        if (imageToPost) {
-          const uploadTask = storage
-            .ref(`posts/${doc.id}`)
-            .putString(imageToPost, "data_url");
+            removeImage();
 
-          removeImage();
+            uploadTask.on(
+              "state_change",
+              null,
+              (error) => console.error(error),
+              () => {
+                //when the upload complete
+                storage
+                  .ref("posts")
+                  .child(doc.id)
+                  .getDownloadURL()
+                  .then((url) => {
+                    db.collection("posts").doc(doc.id).set(
+                      {
+                        postImage: url,
+                      },
+                      { merge: true }
+                    );
+                  });
+              }
+            );
+          }
+        });
 
-          uploadTask.on(
-            "state_change",
-            null,
-            (error) => console.error(error),
-            () => {
-              //when the upload complete
-              storage
-                .ref("posts")
-                .child(doc.id)
-                .getDownloadURL()
-                .then((url) => {
-                  db.collection("posts").doc(doc.id).set(
-                    {
-                      postImage: url,
-                    },
-                    { merge: true }
-                  );
-                });
-            }
-          );
-        }
-      });
-
-    inputRef.current.value = "";
-    setInputStr("");
-    setShowPopup(false);
+        setInputStr("");
+      setInputStr("");
+      setShowPopup(false);
+    }
   };
 
   const addImageToPost = (e) => {
     const reader = new FileReader();
     const maxSize = 5 * 1024 * 1024; // 5MB
-  
+
     if (e.target.files[0]) {
       const fileSize = e.target.files[0].size;
-  
+
       if (fileSize > maxSize) {
-        alert('File size is too large');
+        alert("File size is too large");
         return;
       }
-  
+
       reader.readAsDataURL(e.target.files[0]);
     }
-  
+
     reader.onload = (readerEvent) => {
       setImageToPost(readerEvent.target.result);
     };
@@ -111,10 +115,12 @@ const InputBox = () => {
     };
   }, []);
 
-
   return (
     <>
-      <div className="bg-white dark:bg-gray-900 dark:text-white rounded-2xl shadow-md text-gray-500 font-medium mt-6" ref={dropdownRef}>
+      <div
+        className="bg-white dark:bg-gray-900 dark:text-white rounded-2xl shadow-md text-gray-500 font-medium mt-6"
+        ref={dropdownRef}
+      >
         <div className="flex space-x-4 p-6 items-center">
           <Image
             className="rounded-full"
@@ -190,7 +196,7 @@ const InputBox = () => {
           </div>
         </div>
 
-        {inputStr.trim() && (
+        {inputStr.trim() || imageToPost ? (
           <button
             className="bg-blue-500 flex items-center justify-center w-[100%] rounded-b-2xl text-white py-2 font-medium text-base"
             type="submit"
@@ -198,7 +204,7 @@ const InputBox = () => {
           >
             Send
           </button>
-        )}
+        ): "" }
       </div>
     </>
   );

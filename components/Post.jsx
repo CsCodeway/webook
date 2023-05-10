@@ -4,23 +4,145 @@ import {
   ShareIcon,
   ThumbUpIcon,
 } from "@heroicons/react/outline";
+import { ThumbUpIcon as SolidThumbUpIcon } from "@heroicons/react/solid";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
 import firebase from "firebase/compat/app";
+import Head from "next/head";
 
-const Post = ({ name, message, postImage, image, timestamp }) => {
+const Post = ({
+  postId,
+  name,
+  message,
+  postImage,
+  image,
+  timestamp,
+  currentUser,
+}) => {
   const [commentText, setCommentText] = useState("");
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  useEffect(() => {
+    const postRef = db.collection("likes").doc(postId);
+
+    const user = currentUser; // Get the currently logged-in user
+
+    if (user) {
+      const userId = user.uid;
+
+      // Fetch the initial like status and count for the specific user
+      postRef.get().then((snapshot) => {
+        if (snapshot.exists) {
+          setIsLiked(snapshot.data()[userId]);
+        } else {
+          // Check if there is a like status stored in the local storage for this postId and user
+          const likeStatus = localStorage.getItem(`${postId}_${userId}`);
+          setIsLiked(likeStatus === "true");
+        }
+      });
+    } else {
+      // Fetch the initial like status and count when there is no user logged in
+      postRef.get().then((snapshot) => {
+        const post = snapshot.data();
+
+        if (post && post.likes) {
+          setIsLiked(post.likes === 1);
+          setLikeCount(post.likes); // Set the initial like count
+        } else {
+          // Check if there is a like status stored in the local storage for this postId
+          const likeStatus = localStorage.getItem(postId);
+          setIsLiked(likeStatus === "true");
+        }
+      });
+    }
+
+    return () => {
+      // Clean up
+      postRef.onSnapshot(() => {});
+    };
+  }, [postId]);
+
+  const handleLikeClick = () => {
+    const user = currentUser;
+    if (user) {
+      const userId = user.uid;
+      const newIsLiked = !isLiked;
+
+      // Update the like count in the state based on the new like status
+      setLikeCount((prevCount) => (newIsLiked ? prevCount + 1 : prevCount - 1));
+
+      setIsLiked(newIsLiked);
+
+      // Fetch the current like count from the database
+      db.collection("likes")
+        .doc(postId)
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            const currentLikeCount = doc.data().likes || 0;
+            const updatedLikeCount = newIsLiked
+              ? currentLikeCount + 1
+              : currentLikeCount - 1;
+
+            // Update the like count in the database
+            db.collection("likes")
+              .doc(postId)
+              .update({
+                [userId]: newIsLiked,
+                likes: updatedLikeCount,
+              })
+              .catch((error) => {
+                console.log("Error updating document: ", error);
+              });
+          } else {
+            // Create a new document with initial like count of 1
+            db.collection("likes")
+              .doc(postId)
+              .set({
+                [userId]: newIsLiked,
+                likes: 1,
+              })
+              .catch((error) => {
+                console.log("Error creating document: ", error);
+              });
+          }
+        })
+        .catch((error) => {
+          console.log("Error getting document: ", error);
+        });
+
+      localStorage.setItem(`${postId}_${userId}`, newIsLiked.toString());
+
+      if (newIsLiked) {
+        const audio = new Audio("/assets/facebook_likes.mp3");
+        audio.play();
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Fetch the initial like count from the database
+    db.collection("likes")
+      .doc(postId)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          setLikeCount(data.likes || 0);
+        }
+      })
+      .catch((error) => {
+        console.log("Error fetching like count: ", error);
+      });
+  }, []);
+
   const handleImageClick = () => {
     window.open(postImage, "_blank");
   };
-  const [likes, setLikes] = useState(0); // state variable for likes
   const [comment, setComment] = useState(false);
   const dropdownRef = useRef(null);
-
-  const handleLikeClick = () => {
-    setLikes(likes + 1);
-  };
 
   const postComment = () => {
     setComment(!comment);
@@ -78,7 +200,7 @@ const Post = ({ name, message, postImage, image, timestamp }) => {
               className="text-gray-500 cursor-pointer"
             />
           </div>
-          <p className="pt-4 select-text">{message}</p>
+          {message ? <p className="pt-4 select-text">{message}</p> : ""}
         </div>
         {postImage && (
           <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900">
@@ -99,9 +221,21 @@ const Post = ({ name, message, postImage, image, timestamp }) => {
               className="dark:hover:bg-blue-600 hover:text-gray-300 inputIcon rounded-none rounded-bl-2xl"
               onClick={handleLikeClick}
             >
-              <ThumbUpIcon className="h-4" />
-              <p className="text-xs sm:text-base">{likes}</p>
+              {isLiked ? (
+                <SolidThumbUpIcon className="h-4 text-blue-500" />
+              ) : (
+                <ThumbUpIcon className="h-4" />
+              )}
+              <p className="text-xs sm:text-base">Like</p>
+              <span className="text-sm text-gray-500">{likeCount}</span>
             </div>
+            <Head>
+              <link
+                rel="preload"
+                href="/assets/facebook_likes.mp3"
+                as="audio"
+              />
+            </Head>
 
             <div
               className="dark:hover:bg-blue-600 hover:text-gray-300 inputIcon rounded-none"

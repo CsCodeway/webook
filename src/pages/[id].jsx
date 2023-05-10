@@ -2,6 +2,7 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import { db, storage } from "../../firebase";
 import Stories from "react-insta-stories";
 import { useRouter } from "next/router";
+import Loading from "../../components/Loading";
 
 const StoriesPage = ({ name }) => {
   const [stories, loading, error] = useCollection(
@@ -12,7 +13,7 @@ const StoriesPage = ({ name }) => {
   );
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading />
   }
 
   if (error) {

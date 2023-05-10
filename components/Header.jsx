@@ -20,13 +20,16 @@ import { signOut, useSession } from "next-auth/react";
 import { LightBulbIcon, MoonIcon } from "@heroicons/react/solid";
 import userDarkMode from "../hooks/userDarkMode";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 
 const Header = () => {
+  const router = useRouter();
   const { data: session, loading } = useSession();
   const [colorTheme, setTheme] = userDarkMode();
   const [isOpen, setIsOpen] = useState(false);
   const toggleDropdown = () => setIsOpen((prevState) => !prevState);
   const dropdownRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -39,6 +42,28 @@ const Header = () => {
 
     return () => {
       window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace("/"); // Replace "/another-page" with the desired destination
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    // Set the initial window width
+    setWindowWidth(window.innerWidth);
+
+    // Attach the event listener
+    window.addEventListener("resize", handleResize);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -87,16 +112,27 @@ const Header = () => {
               className="h-8 text-[#023047]  ml-2 cursor-pointer"
             />
           )}
-
           <div className="flex items-center space-x-2">
-            <Image
-              className="rounded-full cursor-pointer"
-              src={session?.user.image}
-              width={40}
-              height={40}
-              layout="fixed"
-              alt={session?.user.name}
-            />
+            {windowWidth <= 1280 ? (
+              <Image
+                className="rounded-full cursor-pointer"
+                src={session?.user.image}
+                width={40}
+                height={40}
+                layout="fixed"
+                alt={session?.user.name}
+                onClick={handleSignOut}
+              />
+            ) : (
+              <Image
+                className="rounded-full cursor-pointer"
+                src={session?.user.image}
+                width={40}
+                height={40}
+                layout="fixed"
+                alt={session?.user.name}
+              />
+            )}
             <p className="hidden sm:flex whitespace-nowrap font-semibold pr-3">
               {session?.user.name}
             </p>
@@ -110,7 +146,7 @@ const Header = () => {
           {isOpen && (
             <div className="absolute top-14 right-1 w-56 mt-2 origin-top-right bg-white divide-y divide-gray-200 dark:text-white dark:bg-gray-700 rounded-md shadow-lg outline-none">
               <a
-                onClick={signOut}
+                onClick={handleSignOut}
                 className="flex items-center justify-center cursor-pointer"
               >
                 <LogoutIcon className="icon bg-transparent hover:bg-transparent dark:text-white dark:hover:bg-transparent" />
