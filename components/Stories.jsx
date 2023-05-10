@@ -15,7 +15,7 @@ const Stories = ({ story }) => {
 
   const addimageToPost = (e) => {
     const reader = new FileReader();
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 10 * 1024 * 1024; // 5MB
     const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
   
     if (e.target.files[0]) {
