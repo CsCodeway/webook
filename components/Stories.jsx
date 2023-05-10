@@ -162,7 +162,6 @@ const Stories = ({ story }) => {
             type="file"
             onChange={addimageToPost}
             accept="image/*"
-            capture="camera"
             hidden
           />
           <p className="hidden lg:flex text-white absolute bottom-2">
