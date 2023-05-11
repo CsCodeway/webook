@@ -8,13 +8,16 @@ import Widgets from "../../components/Widgets";
 import { db } from "../../firebase";
 import Login from "./Login";
 export default function Home({ session, posts, story }) {
-
   if (!session) return <Login />;
 
   return (
     <div className="h-screen bg-gray-100 overflow-hidden dark:bg-gray-800 dark:text-white">
       <Head>
         <title>Coolbook</title>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, user-scalable=1, maximum-scale=1"
+        />
       </Head>
       <Header />
       <main className="flex">
