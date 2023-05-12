@@ -29,7 +29,7 @@ const StoriesPage = ({ name }) => {
   }));
 
   return (
-    <div className="sm:story-bg">
+    <div className="sm:bg-[#f5f5f5]">
       <div className="flex flex-col h-screen">
         <div className="flex items-center justify-center flex-grow">
           <div className="relative w-full max-w-sm mx-auto">
