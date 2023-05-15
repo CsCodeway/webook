@@ -40,7 +40,9 @@ const Stories = ({ story }) => {
       "image/png",
       "image/gif",
       "video/mp4",
+      "video/mp4",
       "video/quicktime",
+      "video/mkv",
     ];
 
     if (e.target.files[0]) {
@@ -68,7 +70,7 @@ const Stories = ({ story }) => {
           reader.readAsDataURL(e.target.files[0]);
         }
       } else {
-        alert("Only JPEG, PNG, GIF, MP4, and QuickTime files are allowed");
+        alert("Only JPEG, PNG, GIF, MP4, Mkv and QuickTime files are allowed");
       }
     }
   };

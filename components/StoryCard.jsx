@@ -19,16 +19,19 @@ const StoryCard = ({ name, postImage, postVideo, image }) => {
 
   function toggleVideoPlayback() {
     const videoElement = videoRef.current;
-    if (videoElement.paused) {
+    if (videoElement && videoElement.paused) {
       videoElement.play();
-    } else {
+    } else if (videoElement) {
       videoElement.pause();
     }
   }
 
+  //border border-[1px solid #f5f5f5] rounded-lg
   return (
     <div
-      className="relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden p-3 transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
+      className={`relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden p-3 transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0 ${
+        postVideo ? "border border-[1px solid #f5f5f5] rounded-lg" : ""
+      }`}
       onClick={handleNavigation}
     >
       <Image
@@ -54,26 +57,24 @@ const StoryCard = ({ name, postImage, postVideo, image }) => {
         />
       )}
       {postVideo && (
-  <div className="relative">
-    {!videoVisible ? (
-      <video
-        ref={videoRef}
-        className="object-cover h-14 w-14 rounded-full lg:rounded-2xl"
-        src={postVideo}
-        poster={postImage}
-        loop
-        onClick={toggleVideoPlayback}
-      />
-    ) : (
-      <img
-        src={postImage}
-        alt="Video Thumbnail"
-        className="object-cover h-14 w-14 rounded-full lg:rounded-2xl"
-      />
-    )}
-  </div>
-)}
-
+        <div className="relative">
+          {!videoVisible ? (
+            <video
+              className={`object-cover filter brightness-75 rounded-full lg:rounded-lg`}
+              src={postVideo}
+              alt=""
+              layout="fill"
+              onClick={toggleVideoPlayback}
+            />
+          ) : (
+            <img
+              src={postImage}
+              alt="Video Thumbnail"
+              className="object-cover h-14 w-14 filter brightness-75 rounded-full lg:rounded-none"
+            />
+          )}
+        </div>
+      )}
 
       <p className="hidden lg:flex font-medium text-center text-white absolute bottom-2">
         {session.user.name === name ? "Your Story" : name}
