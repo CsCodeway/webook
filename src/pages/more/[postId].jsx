@@ -6,6 +6,10 @@ import Image from "next/image";
 const ImageComment = () => {
   const { postImage } = useContext(PostContext);
 
+  if (!postImage) {
+    return null; // or render a placeholder image or handle the null case
+  }
+
   return (
     <>
       <Head>
