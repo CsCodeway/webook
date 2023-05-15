@@ -6,10 +6,12 @@ import {
 } from "@heroicons/react/outline";
 import { ThumbUpIcon as SolidThumbUpIcon } from "@heroicons/react/solid";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
 import firebase from "firebase/compat/app";
 import Head from "next/head";
+import { useRouter } from 'next/router'
+import { PostContext } from "./PostContext";
 
 const Post = ({
   postId,
@@ -23,6 +25,8 @@ const Post = ({
   const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const router = useRouter();
+  const { updatePostImage } = useContext(PostContext);
 
   useEffect(() => {
     const postRef = db.collection("likes").doc(postId);
@@ -138,9 +142,10 @@ const Post = ({
       });
   }, []);
 
-  const handleImageClick = () => {
-    window.open(postImage, "_blank");
-  };
+  function handleNavigation() {
+    updatePostImage(postImage);
+    router.push(`/more/${postId}`)
+  }
   const [comment, setComment] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -206,7 +211,7 @@ const Post = ({
           <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900">
             <Image
               src={postImage}
-              onClick={handleImageClick}
+              onClick={handleNavigation}
               className="dark:bg-gray-300"
               objectFit="cover"
               alt="/"

@@ -17,12 +17,27 @@ const InputBox = () => {
   const [inputStr, setInputStr] = useState("");
   const dropdownRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPopup(false);
+      }
+    };
+
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   const sendPost = (e) => {
     e.preventDefault();
 
     if (!loading && session) {
       const currentUser = session.user;
-  console.log("Current user:", currentUser);
+      console.log("Current user:", currentUser);
+
       db.collection("posts")
         .add({
           postId: uuidv4(),
@@ -64,7 +79,6 @@ const InputBox = () => {
           }
         });
 
-        setInputStr("");
       setInputStr("");
       setShowPopup(false);
     }
@@ -93,6 +107,7 @@ const InputBox = () => {
   const removeImage = () => {
     setImageToPost(null);
   };
+
   const togglePopup = () => {
     setShowPopup(!showPopup);
   };
@@ -101,20 +116,17 @@ const InputBox = () => {
     setInputStr(inputStr + data.emoji);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowPopup(false);
-      }
-    };
+  if (loading) {
+    // Show loading state while fetching session data
+    return <p>Loading...</p>;
+  }
 
-    window.addEventListener("click", handleClickOutside);
+  if (!session) {
+    // Show message when user is logged out
+    return <p>You are logged out.</p>
+  }
 
-    return () => {
-      window.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
-
+ 
   return (
     <>
       <div

@@ -1,43 +1,85 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
+import { StoryContext } from "./StoryContext";
+import { useContext, useState, useRef } from "react";
 
-const StoryCard = ({ name, postImage, image }) => {
+const StoryCard = ({ name, postImage, postVideo, image }) => {
   const { data: session } = useSession();
-  const router = useRouter()
+  const router = useRouter();
+  const { updateName } = useContext(StoryContext);
+  const [videoVisible, setVideoVisible] = useState(false);
+  const videoRef = useRef(null);
 
-  function handleNavigation(id) {
-    router.push({
-      pathname: `/stories${id}`,
-      query: { name },
-    });
+  function handleNavigation() {
+    updateName(name);
+    setVideoVisible(false);
+    router.push(`/stories/${name}`);
   }
-  
+
+  function toggleVideoPlayback() {
+    const videoElement = videoRef.current;
+    if (videoElement.paused) {
+      videoElement.play();
+    } else {
+      videoElement.pause();
+    }
+  }
+
   return (
-    <>
-      <div className="relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden p-3 transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0" onClick={() => handleNavigation(name)}>
+    <div
+      className="relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden p-3 transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
+      onClick={handleNavigation}
+    >
+      <Image
+        className={`absolute h-14 w-14 opacity-0 lg:opacity-100 rounded-full top-2 left-1 z-50 ${
+          videoVisible ? "hidden" : ""
+        }`}
+        height={40}
+        width={40}
+        src={image}
+        alt=""
+        layout="fixed"
+        objectFit="cover"
+      />
+      {postImage && (
         <Image
-          className="absolute h-14 w-14 opacity-0 lg:opacity-100 rounded-full top-2 left-1 z-50"
-          height={40}
-          width={40}
-          src={image}
-          alt=""
-          layout="fixed"
-          objectFit="cover"
-        />
-        <Image
-          className="object-cover h-14 w-14 filter brightness-75 rounded-full lg:rounded-2xl"
+          className={`object-cover h-14 w-14 filter brightness-75 rounded-full lg:rounded-2xl ${
+            videoVisible ? "hidden" : ""
+          }`}
           src={postImage}
           alt=""
           layout="fill"
+          onClick={() => setVideoVisible(true)}
         />
-        <p className="hidden lg:flex font-medium text-center text-white absolute bottom-2">
-          {session.user.name === name ? "Your Story" : name}
-        </p>
-      </div>
-    </>
+      )}
+      {postVideo && (
+  <div className="relative">
+    {!videoVisible ? (
+      <video
+        ref={videoRef}
+        className="object-cover h-14 w-14 rounded-full lg:rounded-2xl"
+        src={postVideo}
+        poster={postImage}
+        loop
+        onClick={toggleVideoPlayback}
+      />
+    ) : (
+      <img
+        src={postImage}
+        alt="Video Thumbnail"
+        className="object-cover h-14 w-14 rounded-full lg:rounded-2xl"
+      />
+    )}
+  </div>
+)}
+
+
+      <p className="hidden lg:flex font-medium text-center text-white absolute bottom-2">
+        {session.user.name === name ? "Your Story" : name}
+      </p>
+    </div>
   );
 };
+
 export default StoryCard;
-
-
