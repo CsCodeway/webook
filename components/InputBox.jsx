@@ -36,7 +36,7 @@ const InputBox = () => {
 
     if (!loading && session) {
       const currentUser = session.user;
-      console.log("Current user:", currentUser);
+      // console.log("Current user:", currentUser);
 
       db.collection("posts")
         .add({
@@ -123,10 +123,9 @@ const InputBox = () => {
 
   if (!session) {
     // Show message when user is logged out
-    return <p>You are logged out.</p>
+    return <p>You are logged out.</p>;
   }
 
- 
   return (
     <>
       <div
@@ -216,7 +215,9 @@ const InputBox = () => {
           >
             Send
           </button>
-        ): "" }
+        ) : (
+          ""
+        )}
       </div>
     </>
   );

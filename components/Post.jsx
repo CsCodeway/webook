@@ -10,23 +10,28 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
 import firebase from "firebase/compat/app";
 import Head from "next/head";
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
 import { PostContext } from "./PostContext";
+import { useSession } from "next-auth/react";
 
 const Post = ({
   postId,
   name,
+  email,
   message,
   postImage,
   image,
   timestamp,
   currentUser,
+  deletePost,
 }) => {
+  const { data: session, loading } = useSession();
   const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const router = useRouter();
   const { updatePostImage } = useContext(PostContext);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const postRef = db.collection("likes").doc(postId);
@@ -144,7 +149,7 @@ const Post = ({
 
   function handleNavigation() {
     updatePostImage(postImage);
-    router.push(`/more/${postId}`)
+    router.push(`/more/${postId}`);
   }
   const [comment, setComment] = useState(false);
   const dropdownRef = useRef(null);
@@ -177,6 +182,19 @@ const Post = ({
     // Clear the comment text input field
     setCommentText("");
   };
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleDelete = () => {
+    // console.log("Deleting post with postId:", postId);
+    deletePost(postId);
+    setShowDropdown(false);
+  };
+
+  const isCurrentUserPost = email === session.user.email;
+
   return (
     <>
       <div className="flex flex-col" ref={dropdownRef}>
@@ -199,16 +217,28 @@ const Post = ({
                 <p className="text-xs text-gray-400">Loading...</p>
               )}
             </div>
-            <DotsVerticalIcon
-              height={25}
-              width={22}
-              className="text-gray-500 cursor-pointer"
-            />
+            <div className="relative">
+              <DotsVerticalIcon
+                height={23}
+                onClick={toggleDropdown}
+                className="cursor-pointer text-gray-500"
+              />
+              {isCurrentUserPost && showDropdown && (
+                <div className="absolute top-0 right-0 mt-6 w-40 py-2 bg-white dark:bg-gray-900 shadow-lg rounded-md z-10">
+                  <p
+                    className="px-4 py-2 text-gray-800 cursor-pointer hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-800"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           {message ? <p className="pt-4 select-text">{message}</p> : ""}
         </div>
         {postImage && (
-          <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900">
+          <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900 z-0">
             <Image
               src={postImage}
               onClick={handleNavigation}
@@ -219,6 +249,7 @@ const Post = ({
             />
           </div>
         )}
+
         {/* footer of post */}
         <div className="flex flex-col bg-white dark:bg-gray-900 rounded-b-2xl dark:text-gray-300 shadow-md text-gray-400 border-t dark:border-t-0">
           <div className="flex justify-between items-center  ">

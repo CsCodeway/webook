@@ -124,10 +124,10 @@ const Stories = ({ story }) => {
 
                 db.collection("story").doc(doc.id).update({ timestamp });
 
-                // Set a timeout for deleting the story after 2 minutes
+                // Set a timeout for deleting the story after 24 hours
                 const timeoutId = setTimeout(() => {
                   deleteStory(doc.id);
-                }, 120000); // 2 minutes in milliseconds
+                }, 86400000); // 24 hours in milliseconds
 
                 // No need to store the timeout ID
               }
@@ -142,17 +142,32 @@ const Stories = ({ story }) => {
               null,
               (error) => console.error(error),
               () => {
-                // Set a timestamp for the story
-                const timestamp = Date.now() / 1000; // Current time in seconds
+                uploadTask.snapshot.ref
+                  .getDownloadURL()
+                  .then((url) => {
+                    db.collection("story").doc(doc.id).set(
+                      {
+                        postVideo: url, // Store the video URL in the 'postVideo' field
+                      },
+                      { merge: true }
+                    );
+                  })
+                  .then(() => {
+                    // Set a timestamp for the story
+                    const timestamp = Date.now() / 1000; // Current time in seconds
 
-                db.collection("story").doc(doc.id).update({ timestamp });
+                    db.collection("story").doc(doc.id).update({ timestamp });
 
-                // Set a timeout for deleting the story after 2 minutes
-                const timeoutId = setTimeout(() => {
-                  deleteStory(doc.id);
-                }, 120000); // 2 minutes in milliseconds
+                    // Set a timeout for deleting the story after 24 hours
+                    const timeoutId = setTimeout(() => {
+                      deleteStory(doc.id);
+                    }, 86400000); // 24 hours in milliseconds
 
-                // No need to store the timeout ID
+                    // No need to store the timeout ID
+                  })
+                  .catch((error) => {
+                    console.error("Error getting video download URL:", error);
+                  });
               }
             );
           }

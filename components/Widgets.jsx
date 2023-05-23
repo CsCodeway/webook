@@ -4,7 +4,7 @@ import Contact from "./Contact";
 
 const Widgets = () => {
   return (
-    <div className="hidden lg:flex flex-col w-60 p-2 mt-5 cursor-pointer">
+    <div className="hidden lg:flex flex-col w-60 p-2 mt-5">
       <div className="flex justify-between items-center pr-2 text-gray-500 dark:text-white mb-5">
         <h2 className="text-xl cursor-default">Contacts</h2>
         <div className="flex space-x-2">
@@ -14,8 +14,7 @@ const Widgets = () => {
         </div>
       </div>
 
-          <Contact />
-      
+      <Contact />
     </div>
   );
 };

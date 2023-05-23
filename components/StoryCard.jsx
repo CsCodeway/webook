@@ -35,7 +35,7 @@ const StoryCard = ({ id, name, postImage, postVideo, image }) => {
     if (uploadTimestamp > 0) {
       const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
       const elapsedTime = currentTime - uploadTimestamp; // Elapsed time since upload in seconds
-      const remainingTime = 120 - elapsedTime; // Remaining time in seconds
+      const remainingTime = 24 * 60 * 60 - elapsedTime; // Remaining time in seconds (24 hours)
 
       if (remainingTime > 0) {
         const timeoutId = setTimeout(() => {
