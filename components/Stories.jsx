@@ -7,6 +7,7 @@ import firebase from "firebase/compat/app";
 import { useCollection } from "react-firebase-hooks/firestore";
 import StoryCard from "./StoryCard";
 import { useRouter } from "next/router";
+import { deleteStory } from "../src/pages/api/delete-story";
 
 const Stories = ({ story }) => {
   const { data: session, loading } = useSession();
@@ -118,13 +119,17 @@ const Stories = ({ story }) => {
                     );
                   });
 
-                // Set a timeout for deleting the story after 24 hours (86400000 milliseconds)
-                const timeoutId = setTimeout(() => {
-                  db.collection("story").doc(doc.id).delete();
-                  storage.ref(`story/${doc.id}`).delete();
-                }, 86400000);
+                // Set a timestamp for the story
+                const timestamp = Date.now() / 1000; // Current time in seconds
 
-                setRemoveTimeoutId(timeoutId);
+                db.collection("story").doc(doc.id).update({ timestamp });
+
+                // Set a timeout for deleting the story after 2 minutes
+                const timeoutId = setTimeout(() => {
+                  deleteStory(doc.id);
+                }, 120000); // 2 minutes in milliseconds
+
+                // No need to store the timeout ID
               }
             );
           } else if (videoToStory) {
@@ -137,29 +142,23 @@ const Stories = ({ story }) => {
               null,
               (error) => console.error(error),
               () => {
-                storage
-                  .ref("story")
-                  .child(doc.id)
-                  .getDownloadURL()
-                  .then((url) => {
-                    db.collection("story").doc(doc.id).set(
-                      {
-                        postVideo: url,
-                      },
-                      { merge: true }
-                    );
-                  });
+                // Set a timestamp for the story
+                const timestamp = Date.now() / 1000; // Current time in seconds
 
-                // Set a timeout for deleting the story after 24 hours (86400000 milliseconds)
+                db.collection("story").doc(doc.id).update({ timestamp });
+
+                // Set a timeout for deleting the story after 2 minutes
                 const timeoutId = setTimeout(() => {
-                  db.collection("story").doc(doc.id).delete();
-                  storage.ref(`story/${doc.id}`).delete();
-                }, 86400000);
+                  deleteStory(doc.id);
+                }, 120000); // 2 minutes in milliseconds
 
-                setRemoveTimeoutId(timeoutId);
+                // No need to store the timeout ID
               }
             );
           }
+        })
+        .catch((error) => {
+          console.error("Error adding story:", error);
         });
     }
   };
@@ -267,7 +266,7 @@ const Stories = ({ story }) => {
           {uniqueStories.map((story) => (
             <StoryCard
               key={story.id}
-              id={story.data().id}
+              id={story.id}
               name={story.data().name}
               timestamp={story.data().timestamp}
               image={story.data().image}
