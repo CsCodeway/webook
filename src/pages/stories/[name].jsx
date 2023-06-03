@@ -83,7 +83,7 @@ const StoriesPage = () => {
             <ArrowLeftIcon
               width="30"
               height="30"
-              className="mt-4 ml-4 cursor-pointer"
+              className="onClick={handleMain}"
               onClick={handleMain}
             />
           </div>

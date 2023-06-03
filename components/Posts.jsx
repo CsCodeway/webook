@@ -55,6 +55,7 @@ const Posts = ({ posts }) => {
             return (
               <Post
                 key={post.id}
+                id={post.data().id}
                 postId={post.data().postId || post.postId} // Use post.data().postId if available, otherwise fallback to post.postId
                 name={post.data().name}
                 email={post.data().email}
@@ -76,6 +77,7 @@ const Posts = ({ posts }) => {
             return (
               <Post
                 key={post.id}
+                id={post.id}
                 postId={post.postId}
                 name={post.name}
                 email={post.email}

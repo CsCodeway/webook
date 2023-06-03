@@ -38,46 +38,52 @@ const InputBox = () => {
       const currentUser = session.user;
       // console.log("Current user:", currentUser);
 
+      const postId = uuidv4(); // Define the postId variable
+
       db.collection("posts")
-        .add({
-          postId: uuidv4(),
-          id: uuidv4(),
+        .doc(postId) // Set the document ID to be the same as postId
+        .set({
+          id: postId, // Use the postId as the value for the id field
+          postId: postId,
           message: inputStr,
           email: session.user.email,
           name: session.user.name,
           image: session.user.image,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         })
-        .then((doc) => {
+        .then(() => {
           if (imageToPost) {
             const uploadTask = storage
-              .ref(`posts/${doc.id}`)
+              .ref(`posts/${postId}`)
               .putString(imageToPost, "data_url");
-
+      
             removeImage();
-
+      
             uploadTask.on(
               "state_change",
               null,
               (error) => console.error(error),
               () => {
-                //when the upload complete
+                // When the upload completes
                 storage
                   .ref("posts")
-                  .child(doc.id)
+                  .child(postId)
                   .getDownloadURL()
                   .then((url) => {
-                    db.collection("posts").doc(doc.id).set(
-                      {
-                        postImage: url,
-                      },
-                      { merge: true }
-                    );
+                    // Set the postImage field in the document
+                    db.collection("posts")
+                      .doc(postId)
+                      .set(
+                        {
+                          postImage: url,
+                        },
+                        { merge: true }
+                      );
                   });
               }
             );
           }
-        });
+        });      
 
       setInputStr("");
       setShowPopup(false);

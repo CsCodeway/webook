@@ -29,9 +29,9 @@ export default async function deleteStoryHandler(req, res) {
     const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
     const elapsedTime = currentTime - timestamp.seconds; // Elapsed time since upload in seconds
 
-    if (elapsedTime < 86400) {
-      // If elapsed time is less than 2 minutes, set a timeout to delete the story after the remaining time
-      const remainingTime = 86400 - elapsedTime; // Remaining time in seconds
+    if (elapsedTime < 300) {
+      // If elapsed time is less than 5 minutes, set a timeout to delete the story after the remaining time
+      const remainingTime = 300 - elapsedTime; // Remaining time in seconds
 
       const timeoutId = setTimeout(async () => {
         try {

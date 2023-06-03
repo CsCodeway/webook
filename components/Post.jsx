@@ -1,5 +1,6 @@
 import {
   ChatAltIcon,
+  ChevronDoubleRightIcon,
   DotsVerticalIcon,
   ShareIcon,
   ThumbUpIcon,
@@ -16,6 +17,7 @@ import { useSession } from "next-auth/react";
 
 const Post = ({
   postId,
+  id,
   name,
   email,
   message,
@@ -32,6 +34,15 @@ const Post = ({
   const router = useRouter();
   const { updatePostImage } = useContext(PostContext);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showFullMessage, setShowFullMessage] = useState(false);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (!session) {
+    return <p>You are logged out.</p>;
+  }
 
   useEffect(() => {
     const postRef = db.collection("likes").doc(postId);
@@ -149,8 +160,9 @@ const Post = ({
 
   function handleNavigation() {
     updatePostImage(postImage);
-    router.push(`/more/${postId}`);
+    router.push(`/comment/${postId}`);
   }
+  
   const [comment, setComment] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -174,11 +186,25 @@ const Post = ({
 
   const handleCommentSubmit = (event) => {
     event.preventDefault();
+
+    // Generate a unique ID for the comment
+    const commentId = db.collection("comments").doc().id;
+
     // Add the comment data to the Firebase database
-    db.collection("comments").add({
-      text: commentText,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    db.collection("comments")
+      .doc(postId)
+      .collection("comments")
+      .doc(commentId)
+      .set({
+        postId: postId,
+        id: commentId,
+        text: commentText,
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
     // Clear the comment text input field
     setCommentText("");
   };
@@ -188,9 +214,79 @@ const Post = ({
   };
 
   const handleDelete = () => {
-    // console.log("Deleting post with postId:", postId);
+    // Delete the post document
     deletePost(postId);
+
+    // Delete the corresponding comments
+    db.collection("comments")
+      .doc(postId)
+      .collection("comments")
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          doc.ref.delete();
+        });
+        console.log("Comments deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting comments: ", error);
+      });
+
+    // Delete the corresponding like document
+    db.collection("likes")
+      .doc(postId)
+      .delete()
+      .then(() => {
+        console.log("Like document deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting like document: ", error);
+      });
+
     setShowDropdown(false);
+  };
+
+  const handleShowMore = () => {
+    setShowFullMessage(true);
+  };
+
+  const handleSeeLess = () => {
+    setShowFullMessage(false);
+  };
+
+  const getMessageText = () => {
+    if (message) {
+      if (message.split(" ").length > 50 && !showFullMessage) {
+        const truncatedMessage = message.split(" ").slice(0, 50).join(" ");
+        return (
+          <>
+            <p className="pt-4 select-text">{truncatedMessage}...</p>
+            <button className="mt-2 text-gray-700" onClick={handleShowMore}>
+              Show more
+            </button>
+          </>
+        );
+      } else {
+        return (
+          <>
+            <p
+              className={`pt-4 ${postImage ? "" : "select-text"}`}
+              onClick={postImage ? undefined : handleNavigation}
+            >
+              {message}
+            </p>
+
+            {message.split(" ").length > 50 && (
+              <button className="mt-2 text-gray-700" onClick={handleSeeLess}>
+                See less
+              </button>
+            )}
+          </>
+        );
+      }
+    } else {
+      return null;
+    }
   };
 
   const isCurrentUserPost = email === session.user.email;
@@ -211,7 +307,18 @@ const Post = ({
               <p className="font-medium">{name}</p>
               {timestamp ? (
                 <p className="text-xs text-gray-400 dark:text-gray-300">
-                  {new Date(timestamp?.toDate()).toLocaleString()}
+                  {new Date(timestamp?.toDate())
+                    .toLocaleString("en-IN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: true,
+                    })
+                    .replace(",", "")
+                    .replace(/(am|pm)/i, (match) => match.toUpperCase())}
                 </p>
               ) : (
                 <p className="text-xs text-gray-400">Loading...</p>
@@ -235,7 +342,7 @@ const Post = ({
               )}
             </div>
           </div>
-          {message ? <p className="pt-4 select-text">{message}</p> : ""}
+          {getMessageText()}
         </div>
         {postImage && (
           <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900 z-0">
@@ -287,14 +394,22 @@ const Post = ({
             </div>
           </div>
           {comment && (
-            <form onSubmit={handleCommentSubmit} className="flex">
-              <input
-                className="input-class rounded-b-2xl h-12 border-t bg-white flex-grow px-5 focus:outline-none dark:text-black"
+            <form className="flex border-t h-12 ">
+              <textarea
+                className="input-class pt-3 rounded-b-2xl resize-none appearance-none bg-white flex-grow px-5 focus:outline-none dark:text-black"
                 type="text"
-                placeholder="comment"
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
+                placeholder={`Write something about, ${name}...`}
               />
+              {commentText.trim() && (
+                <button
+                  onClick={handleCommentSubmit}
+                  className="bg-blue-400 text-white flex justify-center items-center px-3 gap-1 text-base rounded-br-2xl"
+                >
+                  Send <ChevronDoubleRightIcon height={15} width={15} />
+                </button>
+              )}
             </form>
           )}
         </div>
