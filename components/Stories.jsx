@@ -248,7 +248,7 @@ const Stories = () => {
           </div>
 
           <div
-            className="relative flex items-center justify-center h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 overflow-hidden transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer bg-white shrink-0"
+            className="relative flex items-center justify-center h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 overflow-hidden transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
             onClick={() => filepickerRef.current.click()}
           >
             <Image
@@ -266,9 +266,9 @@ const Stories = () => {
               hidden
             />
 
-            <div className="absolute w-full bottom-0 bg-[#4d4d4f] flex flex-col items-center justify-center rounded-b-2xl">
+            <div className="absolute w-full bottom-0 bg-[#323238] flex flex-col items-center justify-center rounded-b-2xl py-1">
               <PlusCircleIcon className="text-blue-500 bg-white rounded-full plus-icon" />
-              <p className="text-white text-sm sm:text-[14px] md:text-base font-medium">
+              <p className="text-white text-sm sm:text-[14px] md:text-base font-medium pt-1">
                 Add Story
               </p>
             </div>
