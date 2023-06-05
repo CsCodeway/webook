@@ -5,7 +5,6 @@ import { StoryContext } from "./StoryContext";
 import { useContext, useState, useRef, useEffect } from "react";
 import { db, storage } from "../firebase";
 
-
 const StoryCard = ({ id, name, postImage, postVideo, image }) => {
   const { data: session } = useSession();
   const router = useRouter();
@@ -91,13 +90,11 @@ const StoryCard = ({ id, name, postImage, postVideo, image }) => {
 
   return (
     <div
-      className="relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
+      className="relative flex items-center justify-center h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 overflow-hidden transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
       onClick={handleNavigation}
     >
       <Image
-        className={`absolute h-14 w-14 opacity-0 lg:opacity-100 rounded-full top-2 left-1 z-50 ${
-          videoVisible ? "hidden" : ""
-        }`}
+        className="absolute sm:h-10 sm:w-10 lg:h-14 lg:w-14 opacity-100 rounded-full top-2 left-1 z-50 border-[2px] border-blue-500"
         height={40}
         width={40}
         src={image}
@@ -107,7 +104,7 @@ const StoryCard = ({ id, name, postImage, postVideo, image }) => {
       />
       {postImage && (
         <Image
-          className="object-cover h-14 w-14 filter brightness-75 rounded-full lg:rounded-2xl"
+          className="object-cover h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 filter brightness-75 rounded-2xl"
           src={postImage}
           alt=""
           layout="fill"
@@ -118,7 +115,7 @@ const StoryCard = ({ id, name, postImage, postVideo, image }) => {
         <div className="relative">
           {!videoVisible ? (
             <video
-              className="object-fill h-20 w-20 md:w-full lg:h-56 lg:w-full filter brightness-75 rounded-full lg:rounded-2xl"
+              className="object-cover h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 filter brightness-75 rounded-2xl"
               src={postVideo}
               alt=""
               layout="fill"
@@ -129,13 +126,13 @@ const StoryCard = ({ id, name, postImage, postVideo, image }) => {
             <img
               src={postImage}
               alt="Video Thumbnail"
-              className="object-fill object-center h-20 w-20 md:w-full lg:h-56 lg:w-full filter brightness-75 rounded-full lg:rounded-2xl"
+              className="object-cover h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 filter brightness-75 rounded-2xl"
             />
           )}
         </div>
       )}
 
-      <p className="hidden lg:flex font-medium text-center text-white absolute bottom-2">
+      <p className="text-white absolute bottom-1 text-sm sm:text-[14px] md:text-base font-medium">
         {session.user.name === name ? "Your Story" : name}
       </p>
     </div>

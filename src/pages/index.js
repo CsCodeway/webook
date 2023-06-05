@@ -1,13 +1,25 @@
+import { useEffect } from "react";
 import Head from "next/head";
 import Header from "../../components/Header";
 import { getSession } from "next-auth/react";
-// import Login from "./Login";
 import Sidebar from "../../components/Sidebar";
 import Feed from "../../components/Feed";
 import Widgets from "../../components/Widgets";
 import { db } from "../../firebase";
 import Login from "./Login";
+import { useRouter } from "next/router";
+
 export default function Home({ session, posts, story }) {
+  const router = useRouter();
+  useEffect(() => {
+    // Fetch session on the client-side
+    getSession().then((res) => {
+      if (!res) {
+        router.replace("/")
+      }
+    });
+  }, []);
+
   if (!session) return <Login />;
 
   return (
@@ -30,7 +42,7 @@ export default function Home({ session, posts, story }) {
 }
 
 export async function getServerSideProps(context) {
-  //get the user
+  //get the user session
   const session = await getSession(context);
 
   const posts = await db.collection("posts").orderBy("timestamp", "desc").get();

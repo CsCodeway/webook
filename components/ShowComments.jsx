@@ -3,6 +3,8 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
+import Loading from "./Loading";
+import Error from "./Error";
 
 const ShowComments = ({
   name,
@@ -40,11 +42,11 @@ const ShowComments = ({
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading />
   }
 
   if (!session) {
-    return <p>You are logged out.</p>;
+    return <Error />
   }
 
   const toggleDropdown = () => {

@@ -2,7 +2,7 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import { db } from "../../../firebase";
 import Stories from "react-insta-stories";
 import { useRouter } from "next/router";
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { useSession } from "next-auth/react";
 import Loading from "../../../components/Loading";
 import Head from "next/head";
@@ -19,6 +19,14 @@ const StoriesPage = () => {
       .where("name", "==", name)
       .orderBy("timestamp", "desc")
   );
+  const [loadingStories, setLoadingStories] = useState(true);
+  const [storiesData, setStoriesData] = useState([]);
+
+  useEffect(() => {
+    if (loading === false) {
+      setLoadingStories(false);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -48,7 +56,30 @@ const StoriesPage = () => {
     };
   }, []);
 
-  if (loading) {
+  const handleMain = () => {
+    router.replace("/");
+  };
+
+  useEffect(() => {
+    if (stories && !loading && stories.docs.length > 0) {
+      const data = stories.docs.map((story) => {
+        const storyData = story.data();
+        return {
+          url: storyData.postImage || storyData.postVideo,
+          type: storyData.postImage ? "image" : "video",
+        };
+      });
+      setStoriesData(data);
+      localStorage.setItem("storiesData", JSON.stringify(data));
+    } else {
+      const storedStoriesData = localStorage.getItem("storiesData");
+      if (storedStoriesData) {
+        setStoriesData(JSON.parse(storedStoriesData));
+      }
+    }
+  }, [stories, loading]);
+
+  if (loading || loadingStories) {
     return <Loading />;
   }
 
@@ -56,17 +87,9 @@ const StoriesPage = () => {
     return <p>Error: {error.message}</p>;
   }
 
-  const storiesData = stories.docs.map((story) => {
-    const data = story.data();
-    return {
-      url: data.postImage || data.postVideo,
-      type: data.postImage ? "image" : "video",
-    };
-  });
-
-  const handleMain = () => {
-    router.replace("/");
-  };
+  if (storiesData.length === 0) {
+    return <p>No stories available.</p>;
+  }
 
   return (
     <>
@@ -81,39 +104,33 @@ const StoriesPage = () => {
         <div className="flex flex-col sm:flex-row">
           <div className="mt-1">
             <ArrowLeftIcon
-              width="30"
-              height="30"
-              className="onClick={handleMain}"
+              height={30}
+              width={30}
+              className="md:mt-4 md:ml-4 cursor-pointer"
               onClick={handleMain}
             />
           </div>
           <div className="flex-grow">
             <div className="flex items-center justify-center h-screen">
               <div className="relative w-full max-w-sm mx-auto">
-                {storiesData.length > 0 ? (
-                  <Stories
-                    stories={storiesData}
-                    loop
-                    keyboardNavigation
-                    defaultInterval={3000}
-                    className="w-full h-full absolute top-0 left-0"
-                    storyStyles={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    width={360}
-                    height={640}
-                    // Add the following prop:
-                    onAllStoriesEnd={handleMain}
-                    // Add the following prop:
-                    onStoryClose={handleMain}
-                  />
-                ) : (
-                  <p className="text-center">No stories available.</p>
-                )}
+                <Stories
+                  stories={storiesData}
+                  loop
+                  keyboardNavigation
+                  defaultInterval={3000}
+                  className="w-full h-full absolute top-0 left-0"
+                  storyStyles={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  width={360}
+                  height={640}
+                  onAllStoriesEnd={handleMain} 
+                  onStoryClose={handleMain}
+                />
               </div>
             </div>
           </div>

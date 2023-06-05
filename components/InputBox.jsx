@@ -7,6 +7,8 @@ import { db, storage } from "../firebase";
 import firebase from "firebase/compat/app";
 import EmojiPicker, { SuggestionMode } from "emoji-picker-react";
 import { v4 as uuidv4 } from "uuid";
+import Loading from "./Loading";
+import Error from "./Error";
 
 const InputBox = () => {
   const { data: session, loading } = useSession();
@@ -124,12 +126,12 @@ const InputBox = () => {
 
   if (loading) {
     // Show loading state while fetching session data
-    return <p>Loading...</p>;
+    return <Loading />
   }
 
   if (!session) {
     // Show message when user is logged out
-    return <p>You are logged out.</p>;
+    return <Error />
   }
 
   return (

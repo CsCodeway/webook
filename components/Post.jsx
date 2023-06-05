@@ -14,6 +14,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { PostContext } from "./PostContext";
 import { useSession } from "next-auth/react";
+import Loading from "./Loading";
+import Error from "./Error";
 
 const Post = ({
   postId,
@@ -35,14 +37,6 @@ const Post = ({
   const { updatePostImage } = useContext(PostContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showFullMessage, setShowFullMessage] = useState(false);
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  if (!session) {
-    return <p>You are logged out.</p>;
-  }
 
   useEffect(() => {
     const postRef = db.collection("likes").doc(postId);
@@ -83,6 +77,30 @@ const Post = ({
       postRef.onSnapshot(() => {});
     };
   }, [postId]);
+
+  useEffect(() => {
+    // Fetch the initial like count from the database
+    db.collection("likes")
+      .doc(postId)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          setLikeCount(data.likes || 0);
+        }
+      })
+      .catch((error) => {
+        console.log("Error fetching like count: ", error);
+      });
+  }, []);
+
+  if (loading) {
+    return <Loading />
+  }
+
+  if(!session){
+    return <Error />
+  }
 
   const handleLikeClick = () => {
     const user = currentUser;
@@ -142,27 +160,11 @@ const Post = ({
     }
   };
 
-  useEffect(() => {
-    // Fetch the initial like count from the database
-    db.collection("likes")
-      .doc(postId)
-      .get()
-      .then((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          setLikeCount(data.likes || 0);
-        }
-      })
-      .catch((error) => {
-        console.log("Error fetching like count: ", error);
-      });
-  }, []);
-
   function handleNavigation() {
     updatePostImage(postImage);
     router.push(`/comment/${postId}`);
   }
-  
+
   const [comment, setComment] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -183,6 +185,7 @@ const Post = ({
       window.removeEventListener("click", handleClickOutside);
     };
   }, []);
+  
 
   const handleCommentSubmit = (event) => {
     event.preventDefault();
@@ -270,7 +273,9 @@ const Post = ({
         return (
           <>
             <p
-              className={`pt-4 ${postImage ? "" : "select-text"}`}
+              className={`pt-4 ${
+                postImage ? "" : "select-text cursor-pointer"
+              }`}
               onClick={postImage ? undefined : handleNavigation}
             >
               {message}

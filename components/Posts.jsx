@@ -5,9 +5,11 @@ import { useSession } from "next-auth/react";
 
 const Posts = ({ posts }) => {
   const { data: session, loading } = useSession();
+
   const [realtimePosts] = useCollection(
     db.collection("posts").orderBy("timestamp", "desc")
   );
+
 
   const deletePost = (postId, currentUser) => {
     if (postId && currentUser) {

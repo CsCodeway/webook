@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { PlusCircleIcon } from "@heroicons/react/outline";
+import { PlusCircleIcon } from "@heroicons/react/solid";
 import { useEffect, useRef, useState } from "react";
 import { db, storage } from "../firebase";
 import firebase from "firebase/compat/app";
@@ -9,7 +9,7 @@ import StoryCard from "./StoryCard";
 import { useRouter } from "next/router";
 import { deleteStory } from "../src/pages/api/delete-story";
 
-const Stories = ({ story }) => {
+const Stories = () => {
   const { data: session, loading } = useSession();
   const router = useRouter();
 
@@ -248,21 +248,14 @@ const Stories = ({ story }) => {
           </div>
 
           <div
-            className="relative flex items-center justify-center h-14 w-14 md:h-20 md:w-20 lg:h-56 lg:w-36 overflow-hidden p-3 transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer shrink-0"
+            className="relative flex items-center justify-center h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 overflow-hidden transition duration-200 transform ease-in hover:scale-105 hover:animate-pulse cursor-pointer bg-white shrink-0"
             onClick={() => filepickerRef.current.click()}
           >
-            <>
-              <Image
-                className="object-cover h-14 w-14 filter brightness-75 rounded-full lg:rounded-2xl"
-                src={session.user.image}
-                alt=""
-                layout="fill"
-              />
-            </>
-            <PlusCircleIcon
-              height={50}
-              width={50}
-              className="max-lg:top-4 max-md:h-7 max-md:w-17 text-white absolute bottom-10"
+            <Image
+              className="object-fill h-36 w-24 md:h-44 md:w-28 lg:h-56 lg:w-36 filter brightness-75 rounded-2xl"
+              src={session.user.image}
+              alt=""
+              layout="fill"
             />
 
             <input
@@ -273,9 +266,12 @@ const Stories = ({ story }) => {
               hidden
             />
 
-            <p className="hidden lg:flex text-white absolute bottom-2">
-              Add Story
-            </p>
+            <div className="absolute w-full bottom-0 bg-[#4d4d4f] flex flex-col items-center justify-center rounded-b-2xl">
+              <PlusCircleIcon className="text-blue-500 bg-white rounded-full plus-icon" />
+              <p className="text-white text-sm sm:text-[14px] md:text-base font-medium">
+                Add Story
+              </p>
+            </div>
           </div>
 
           {uniqueStories.map((story) => (

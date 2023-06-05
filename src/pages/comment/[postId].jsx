@@ -15,6 +15,8 @@ import ShowComments from "../../../components/ShowComments";
 import { db } from "../../../firebase";
 import { useRouter } from "next/router";
 import firebase from "firebase/compat/app";
+import Loading from "../../../components/Loading";
+import Error from "../../../components/Error";
 
 const ImageComment = () => {
   const { postImage, updatePostImage } = useContext(PostContext);
@@ -29,6 +31,35 @@ const ImageComment = () => {
   const [postData, setPostData] = useState(null);
   const [showFullMessage, setShowFullMessage] = useState(false);
 
+
+  const fetchSessionData = async () => {
+    try {
+      const sessionData = await getSession(); // Replace with the appropriate method to fetch the session data
+      // Update the session state with the fetched session data
+      // ...
+    } catch (error) {
+      console.log("Error fetching session data: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessionData();
+  }, []);
+
+  useEffect(() => {
+    const handleNetworkChange = () => {
+      if (navigator.onLine) {
+        fetchSessionData();
+      }
+    };
+  
+    window.addEventListener("online", handleNetworkChange);
+  
+    return () => {
+      window.removeEventListener("online", handleNetworkChange);
+    };
+  }, []);
+  
   const fetchInitialData = async () => {
     try {
       const likeCountSnapshot = await db.collection("likes").doc(postId).get();
@@ -217,17 +248,22 @@ const ImageComment = () => {
         console.error("Error getting comments: ", error);
       });
   }, [postId]);
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
+  
+  
   if (error) {
     return <p>Error: {error.message}</p>;
   }
-
+  
   if (!postData?.postImage & !postData) {
-    return <p>Loading...</p>;
+    return <Loading />
+  }
+  
+  if (loading) {
+    return <Loading />
+  }
+
+  if(!session){
+    return <Error />
   }
 
   return (
@@ -252,11 +288,11 @@ const ImageComment = () => {
                   height={300}
                   layout="cover"
                 />
-                <div className="absolute top-0 left-0 mt-4 ml-4">
+                <div className="absolute top-0 left-0 mt-4 ml-4 hidden lg:flex">
                   <ArrowLeftIcon
                     height={30}
                     width={30}
-                    className="md:mt-4 md:ml-4 cursor-pointer"
+                    className="m-4 cursor-pointer"
                     onClick={handleMain}
                   />
                 </div>
@@ -270,6 +306,12 @@ const ImageComment = () => {
               <div className="border-b">
                 <div className="flex flex-col p-3 justify-center">
                   <div className="flex space-x-2">
+                    <ArrowLeftIcon
+                      height={25}
+                      width={25}
+                      className="mt-4 ml-2 max-md:ml-0 cursor-pointer flex lg:hidden"
+                      onClick={handleMain}
+                    />
                     <div className="">
                       {postData && (
                         <Image
@@ -380,16 +422,22 @@ const ImageComment = () => {
         <div className="flex lg:flex-none justify-center items-center shadow-md">
           <div className="w-[700px] h-screen lg:overflow-scroll">
             <div className="border-b">
-            <div className="absolute top-0 left-0 mt-4 ml-4">
-                  <ArrowLeftIcon
-                    height={30}
-                    width={30}
-                    className="md:mt-4 md:ml-4 cursor-pointer"
-                    onClick={handleMain}
-                  />
-                </div>
+              <div className="absolute top-0 left-0 mt-4 ml-4 hidden lg:flex">
+                <ArrowLeftIcon
+                  height={30}
+                  width={30}
+                  className="md:mt-4 md:ml-4 cursor-pointer"
+                  onClick={handleMain}
+                />
+              </div>
               <div className="flex flex-col p-3 justify-center">
                 <div className="flex space-x-2">
+                  <ArrowLeftIcon
+                    height={25}
+                    width={25}
+                    className="mt-4 ml-2 cursor-pointer flex lg:hidden"
+                    onClick={handleMain}
+                  />
                   <div className="">
                     {postData && (
                       <Image
