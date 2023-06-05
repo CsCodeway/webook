@@ -45,7 +45,7 @@ const Login = () => {
 
         <div className="h-[405px] w-[90vw] max-w-[300px] bg-[rgba(255,255,255,0.13)] tracking-widest rounded-lg backdrop-blur-md border-[2px] border-[rgba(255,255,255,0.1)] shadow-[(0 0 40px rgba(8,7,16,0.6))] py-[50px] px-[5%] sm:px-[35px] relative z-10">
           <div className="text-3xl font-medium text-center leading-tight mt-0">
-            Coolbook
+            WeBoook
           </div>
           <div className="flex flex-col items-center justify-center">
             <div className="w-[120%] sm:w-[130%] max-w-[500px] mt-4">

@@ -82,7 +82,7 @@ const Header = () => {
             <input
               className="hidden lg:inline-flex ml-2 items-center bg-transparent outline-none placeholder-gray-500 dark:text-black flex-shrink"
               type="text"
-              placeholder="Search Coolbook"
+              placeholder="search webook"
             />
           </div>
         </div>

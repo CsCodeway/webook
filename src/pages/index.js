@@ -25,7 +25,7 @@ export default function Home({ session, posts, story }) {
   return (
     <div className="h-screen bg-gray-100 overflow-hidden dark:bg-gray-800 dark:text-white">
       <Head>
-        <title>Coolbook</title>
+        <title>webook</title>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, user-scalable=1, maximum-scale=1"

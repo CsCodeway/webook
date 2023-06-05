@@ -269,7 +269,7 @@ const ImageComment = () => {
   return (
     <>
       <Head>
-        <title>Coolbook</title>
+        <title>webook</title>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, user-scalable=1, maximum-scale=1"
