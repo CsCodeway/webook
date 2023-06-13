@@ -10,34 +10,35 @@ const Posts = ({ posts }) => {
     db.collection("posts").orderBy("timestamp", "desc")
   );
 
-
   const deletePost = (postId, currentUser) => {
     if (postId && currentUser) {
       db.collection("posts")
         .where("postId", "==", postId)
-        .where("email", "==", currentUser.email) // Check if the post's email matches the current user's email
+        .where("email", "==", currentUser.email)
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
             const postRef = doc.ref;
+            const data = doc.data();
 
-            // Get the post image URL from the document data
-            const postImageURL = doc.data().postImage;
+            const postImageURL = data.postImage;
+            const postVideoURL = data.postVideo; // Add this line to get the post video URL
 
             postRef.delete().then(() => {
               console.log("Post deleted successfully!");
 
-              // Delete the post image from Firebase Storage using the URL
               if (postImageURL) {
                 const imageRef = storage.refFromURL(postImageURL);
-                imageRef
-                  .delete()
-                  // .then(() => {
-                  //   console.log("Post image deleted successfully!");
-                  // })
-                  .catch((error) => {
-                    console.error("Error deleting post image:", error);
-                  });
+                imageRef.delete().catch((error) => {
+                  console.error("Error deleting post image:", error);
+                });
+              }
+
+              if (postVideoURL) {
+                const videoRef = storage.refFromURL(postVideoURL);
+                videoRef.delete().catch((error) => {
+                  console.error("Error deleting post video:", error);
+                });
               }
             });
           });
@@ -65,6 +66,7 @@ const Posts = ({ posts }) => {
                 timestamp={post.data().timestamp}
                 image={post.data().image}
                 postImage={post.data().postImage}
+                postVideo={post.data().postVideo}
                 currentUser={session ? session.user : null}
                 deletePost={() =>
                   deletePost(
@@ -87,6 +89,7 @@ const Posts = ({ posts }) => {
                 timestamp={post.timestamp}
                 image={post.image}
                 postImage={post.postImage}
+                postVideo={post.postVideo}
                 currentUser={session ? session.user : null}
                 deletePost={deletePost}
               />

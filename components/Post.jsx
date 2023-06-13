@@ -24,6 +24,7 @@ const Post = ({
   email,
   message,
   postImage,
+  postVideo,
   image,
   timestamp,
   currentUser,
@@ -35,8 +36,10 @@ const Post = ({
   const [likeCount, setLikeCount] = useState(0);
   const router = useRouter();
   const { updatePostImage } = useContext(PostContext);
+  const { updatePostVideo } = useContext(PostContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showFullMessage, setShowFullMessage] = useState(false);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     const postRef = db.collection("likes").doc(postId);
@@ -95,11 +98,11 @@ const Post = ({
   }, []);
 
   if (loading) {
-    return <Loading />
+    return <Loading />;
   }
 
-  if(!session){
-    return <Error />
+  if (!session) {
+    return <Error />;
   }
 
   const handleLikeClick = () => {
@@ -159,9 +162,13 @@ const Post = ({
       }
     }
   };
+  const handleClick = (e) => {
+    e.preventDefault();
+  };
 
   function handleNavigation() {
     updatePostImage(postImage);
+    updatePostVideo(postVideo);
     router.push(`/comment/${postId}`);
   }
 
@@ -185,7 +192,6 @@ const Post = ({
       window.removeEventListener("click", handleClickOutside);
     };
   }, []);
-  
 
   const handleCommentSubmit = (event) => {
     event.preventDefault();
@@ -359,6 +365,19 @@ const Post = ({
               alt="/"
               layout="fill"
             />
+          </div>
+        )}
+        {postVideo && (
+          <div className="relative h-56 md:h-96 cursor-pointer bg-white dark:bg-gray-900 z-0">
+            <div className="w-full h-full" onClick={handleNavigation}>
+              <video
+                src={postVideo}
+                className="w-full h-full object-cover"
+                controls
+                ref={videoRef}
+                onClick={handleClick}
+              />
+            </div>
           </div>
         )}
 

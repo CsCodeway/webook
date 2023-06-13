@@ -20,6 +20,7 @@ import Error from "../../../components/Error";
 
 const ImageComment = () => {
   const { postImage, updatePostImage } = useContext(PostContext);
+  const { postVideo, updatePostVideo } = useContext(PostContext);
   const { data: session, loading, error } = useSession();
   const router = useRouter();
   const { postId } = router.query;
@@ -31,35 +32,6 @@ const ImageComment = () => {
   const [postData, setPostData] = useState(null);
   const [showFullMessage, setShowFullMessage] = useState(false);
 
-
-  const fetchSessionData = async () => {
-    try {
-      const sessionData = await getSession(); // Replace with the appropriate method to fetch the session data
-      // Update the session state with the fetched session data
-      // ...
-    } catch (error) {
-      console.log("Error fetching session data: ", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSessionData();
-  }, []);
-
-  useEffect(() => {
-    const handleNetworkChange = () => {
-      if (navigator.onLine) {
-        fetchSessionData();
-      }
-    };
-  
-    window.addEventListener("online", handleNetworkChange);
-  
-    return () => {
-      window.removeEventListener("online", handleNetworkChange);
-    };
-  }, []);
-  
   const fetchInitialData = async () => {
     try {
       const likeCountSnapshot = await db.collection("likes").doc(postId).get();
@@ -115,6 +87,24 @@ const ImageComment = () => {
       localStorage.setItem("postImage", postImage);
     }
   }, [postImage]);
+
+  useEffect(() => {
+    // Check if postImage is null or undefined after refreshing the page
+    // If so, try to retrieve it from local storage
+    if (!postVideo) {
+      const storedpostVideo = localStorage.getItem("postVideo");
+      if (storedpostVideo) {
+        updatePostVideo(storedpostVideo);
+      }
+    }
+  }, [postVideo, updatePostVideo]);
+
+  useEffect(() => {
+    // Store the postVideo value in local storage whenever it changes
+    if (postVideo) {
+      localStorage.setItem("postVideo", postVideo);
+    }
+  }, [postVideo]);
 
   useEffect(() => {
     // Fetch the initial like count from the database
@@ -248,22 +238,21 @@ const ImageComment = () => {
         console.error("Error getting comments: ", error);
       });
   }, [postId]);
-  
-  
+
   if (error) {
     return <p>Error: {error.message}</p>;
   }
-  
-  if (!postData?.postImage & !postData) {
-    return <Loading />
-  }
-  
-  if (loading) {
-    return <Loading />
+
+  if (!postData?.postImage && !postData?.postVideo && !postData?.message) {
+    return <Loading />;
   }
 
-  if(!session){
-    return <Error />
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (!session) {
+    return <Error />;
   }
 
   return (
@@ -275,18 +264,39 @@ const ImageComment = () => {
           content="width=device-width, initial-scale=1, user-scalable=1, maximum-scale=1"
         />
       </Head>
-      {postData?.postImage ? (
+      {postData?.postImage || postData?.postVideo ? (
         <div className="flex flex-col h-screen lg:overflow-hidden lg:flex-row">
           {/* Left column */}
-          <div className="flex-1 flex flex-col justify-start items-center lg:justify-center shadow-md py-10 lg:h-screen">
-            {postData?.postImage && (
+          {postData?.postImage && !postData?.postVideo && (
+            <div className="flex-1 flex flex-col justify-start items-center lg:justify-center shadow-md py-10 lg:h-screen">
+              {postData?.postImage && (
+                <>
+                  <img
+                    src={postData.postImage}
+                    alt="/"
+                    className="min-h-[50vh] max-h-[80vh] min-w-auto max-w-[50%]"
+                    layout="cover"
+                  />
+                  <div className="absolute top-0 left-0 mt-4 ml-4 hidden lg:flex">
+                    <ArrowLeftIcon
+                      height={30}
+                      width={30}
+                      className="m-4 cursor-pointer"
+                      onClick={handleMain}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {postData?.postVideo && !postData?.postImage && (
+            <div className="flex-1 flex flex-col justify-start items-center lg:justify-center shadow-md py-10 lg:h-screen">
               <>
-                <Image
-                  src={postData.postImage}
-                  alt="/"
-                  width={500}
-                  height={300}
+                <video
+                  src={postData.postVideo}
+                  className="min-h-[50vh] max-h-[80vh] min-w-auto max-w-[50%]"
                   layout="cover"
+                  controls
                 />
                 <div className="absolute top-0 left-0 mt-4 ml-4 hidden lg:flex">
                   <ArrowLeftIcon
@@ -297,9 +307,8 @@ const ImageComment = () => {
                   />
                 </div>
               </>
-            )}
-          </div>
-
+            </div>
+          )}
           {/* Right column */}
           <div className="flex lg:flex-none justify-center lg:justify-normal items-center lg:items-start shadow-md lg:w-80">
             <div className="w-[700px] h-screen lg:overflow-scroll">

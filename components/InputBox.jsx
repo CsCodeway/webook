@@ -13,8 +13,8 @@ import Error from "./Error";
 const InputBox = () => {
   const { data: session, loading } = useSession();
   const inputRef = useRef(null);
+  const [mediaToPost, setMediaToPost] = useState(null);
   const filepickerRef = useRef(null);
-  const [imageToPost, setImageToPost] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [inputStr, setInputStr] = useState("");
   const dropdownRef = useRef(null);
@@ -52,49 +52,51 @@ const InputBox = () => {
           name: session.user.name,
           image: session.user.image,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        })
-        .then(() => {
-          if (imageToPost) {
-            const uploadTask = storage
-              .ref(`posts/${postId}`)
-              .putString(imageToPost, "data_url");
-      
-            removeImage();
-      
-            uploadTask.on(
-              "state_change",
-              null,
-              (error) => console.error(error),
-              () => {
-                // When the upload completes
-                storage
-                  .ref("posts")
-                  .child(postId)
-                  .getDownloadURL()
-                  .then((url) => {
-                    // Set the postImage field in the document
-                    db.collection("posts")
-                      .doc(postId)
-                      .set(
-                        {
-                          postImage: url,
-                        },
-                        { merge: true }
-                      );
-                  });
-              }
-            );
+        });
+      if (mediaToPost) {
+        const uploadTask = storage
+          .ref(`posts/${postId}`)
+          .putString(mediaToPost, "data_url");
+
+        removeMedia();
+
+        uploadTask.on(
+          "state_change",
+          null,
+          (error) => console.error(error),
+          () => {
+            // When the upload completes
+            storage
+              .ref("posts")
+              .child(postId)
+              .getDownloadURL()
+              .then((url) => {
+                // Set the postImage or postVideo field in the document
+                const mediaField = mediaToPost.startsWith("data:image")
+                  ? "postImage"
+                  : "postVideo";
+
+                db.collection("posts")
+                  .doc(postId)
+                  .set(
+                    {
+                      [mediaField]: url,
+                    },
+                    { merge: true }
+                  );
+              });
           }
-        });      
+        );
+      }
 
       setInputStr("");
       setShowPopup(false);
     }
   };
 
-  const addImageToPost = (e) => {
+  const addMediaToPost = (e) => {
     const reader = new FileReader();
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 50 * 1024 * 1024; // 50MB
 
     if (e.target.files[0]) {
       const fileSize = e.target.files[0].size;
@@ -108,12 +110,12 @@ const InputBox = () => {
     }
 
     reader.onload = (readerEvent) => {
-      setImageToPost(readerEvent.target.result);
+      setMediaToPost(readerEvent.target.result);
     };
   };
 
-  const removeImage = () => {
-    setImageToPost(null);
+  const removeMedia = () => {
+    setMediaToPost(null);
   };
 
   const togglePopup = () => {
@@ -126,12 +128,12 @@ const InputBox = () => {
 
   if (loading) {
     // Show loading state while fetching session data
-    return <Loading />
+    return <Loading />;
   }
 
   if (!session) {
     // Show message when user is logged out
-    return <Error />
+    return <Error />;
   }
 
   return (
@@ -159,12 +161,20 @@ const InputBox = () => {
               placeholder={`what's on your mind, ${session.user.name}?`}
             />
           </form>
-          {imageToPost && (
+          {mediaToPost && (
             <div
-              onClick={removeImage}
+              onClick={removeMedia}
               className="flex flex-col filter-none hover:brightness-110 transition duration-150 transform hover:scale-105 cursor-pointer"
             >
-              <img className="h-10 object-contain" src={imageToPost} alt="/" />
+              {mediaToPost.startsWith("data:image") ? (
+                <img
+                  className="h-10 object-contain"
+                  src={mediaToPost}
+                  alt="/"
+                />
+              ) : (
+                <video className="h-10" src={mediaToPost} controls />
+              )}
               <p className="text-xs text-red-500 text-center">Remove</p>
             </div>
           )}
@@ -201,8 +211,8 @@ const InputBox = () => {
             <input
               ref={filepickerRef}
               type="file"
-              onChange={addImageToPost}
-              accept="image/*"
+              onChange={addMediaToPost}
+              accept="image/*, video/*"
               hidden
             />
           </div>
@@ -215,7 +225,7 @@ const InputBox = () => {
           </div>
         </div>
 
-        {inputStr.trim() || imageToPost ? (
+        {inputStr.trim() || mediaToPost ? (
           <button
             className="bg-blue-500 flex items-center justify-center w-[100%] rounded-b-2xl text-white py-2 font-medium text-base"
             type="submit"
